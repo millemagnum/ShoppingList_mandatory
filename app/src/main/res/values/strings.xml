@@ -1,4 +1,28 @@
 <resources>
     <string name="app_name">ShoppingList</string>
     <string name="action_settings">Settings</string>
+    <string name="product_text">Product</string>
+    <string name="addbag">Add to bag</string>
+    <string name="quantity_hint">0</string>
+    <string name="ware_hint">Banana</string>
+    <string name="confirmation">Confirmation</string>
+    <string name="areYouSure">Are you sure you want to clear all?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
+    <string-array name="spinner_array">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+    </string-array>
+
+
+
 </resources>

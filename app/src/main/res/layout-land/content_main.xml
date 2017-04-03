@@ -22,13 +22,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="Welcome to my shopping list"/>
+        android:text="Welcome to my shopping list - landscape version"/>
 
     <!-- har flere LinearLayout, så de står på samme linje -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:weightSum="100">
+        <!-- så parent fylder hele bredden og er sat til 100 -->
 
         <TextView
             android:layout_width="wrap_content"
@@ -36,10 +37,11 @@
             android:layout_gravity="center"
             android:text="Product:"/>
 
-        <!-- har ændret wrap_content til 0dp ved width -->
+        <!-- har ændret width til 0dp i stedet for wrap_content og tilføjet
+         layout_weight -->
         <EditText
             android:id="@+id/textfield"
-            android:layout_weight="80"
+            android:layout_weight="75"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:hint="@string/ware_hint"
@@ -61,13 +63,13 @@
 
         <EditText
             android:id="@+id/quantityfield"
-            android:layout_weight="25"
+            android:layout_weight="15"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:hint="@string/quantity_hint"
-            android:inputType="number"/>
+            android:inputType="number" />
 
-        <!-- For at knappen bliver vist der ved siden af tekstfelterne, skal den være her -->
+        <!-- har valgt at have knappen her, så den vises ved siden af det andet -->
         <Button
             android:id="@+id/addButton"
             android:text="Add"
@@ -85,19 +87,19 @@
         android:orientation="horizontal"
         android:weightSum="100">
 
-    <Button
-        android:id="@+id/deleteButton"
-        android:text="Delete"
-        android:layout_weight="50"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/deleteButton"
+            android:text="Delete"
+            android:layout_weight="50"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
 
-    <Button
-        android:id="@+id/clearButton"
-        android:text="Clear"
-        android:layout_weight="50"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/clearButton"
+            android:text="Clear"
+            android:layout_weight="50"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
 
     </LinearLayout>
 
