@@ -2,6 +2,21 @@
       xmlns:app="http://schemas.android.com/apk/res-auto"
       xmlns:tools="http://schemas.android.com/tools"
       tools:context="org.projects.shoppinglist.MainActivity">
+
+    <item
+        android:id="@+id/item_clear"
+        android:icon="@android:drawable/ic_menu_close_clear_cancel"
+        app:showAsAction="ifRoom"
+        android:orderInCategory="1"
+        android:title="Clear"/>
+
+    <item
+        android:id="@+id/item_user_settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        app:showAsAction="never"
+        android:orderInCategory="2"
+        android:title="User settings"/>
+
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"

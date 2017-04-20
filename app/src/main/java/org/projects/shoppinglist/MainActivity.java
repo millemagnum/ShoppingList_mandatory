@@ -1,6 +1,7 @@
 package org.projects.shoppinglist;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
@@ -70,6 +71,13 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         super.onCreate(savedInstanceState);
         this.context = this;
         setContentView(R.layout.activity_main);
+
+        //setIntent(MyPreferenceFragment.getName(this));
+
+        showUsersName();
+        showUserStatus();
+
+//        getActionBar().setHomeButtonEnabled(true); // så man kan klikke på app'ens navn/home
 
         //The spinner is defined in our xml file
         //Spinner spinner = (Spinner) findViewById(R.id.spinner);
@@ -220,7 +228,8 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
         // finder clear knappen
 
-        Button clearButton = (Button) findViewById(R.id.clearButton);
+        // TODO - skal slettes, bruges ikke mere
+        /*Button clearButton = (Button) findViewById(R.id.clearButton);
         clearButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -229,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                 showDialog();
 
             }
-        });
+        });*/
 
        // Spinner spinner1 = (Spinner) findViewById(R.id.spinner);
         //final String spinnerAmount = (String) spinner1.getSelectedItem();
@@ -269,11 +278,55 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
     }
 
+    // bruger denne metode til at vise navnet på brugeren fra mit Preference fragment
+    private void showUsersName() {
+        // navnet sættes til at være det brugeren har indtastet via User setting
+        String name = MyPreferenceFragment.getName(this);
+
+        // toasten der skal udskrives - som er en velkomst besked til brugeren
+        String message = "Welcome back "+name+"";
+        Toast toast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+        toast.show();
+    }
+
+    // bruges til at vise brugerens status - om brugeren har tid til at handle ind eller ej
+    private void showUserStatus() {
+
+        boolean isBusy = MyPreferenceFragment.isBusy(this);
+
+        if (isBusy) {
+            String message = "You don't have time to shop today";
+            Toast toast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+            toast.show();
+        } else {
+            String message = "You have time to shop today";
+            Toast toast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+            toast.show();
+        }
+
+    }
+
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode==1) // betyder vi er kommet tilbage fra User settings
+        {
+            // Kalder metoden, der udskriver det indtastede navn i en toast
+            showUsersName();
+
+            // kalder metoden, der udskriver om bruger er busy eller ej
+            showUserStatus();
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+        //return true;
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -281,14 +334,43 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        //int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        /*if (id == R.id.action_settings) {
             return true;
+        } else if (id == R.id.item_clear) {
+            //showDialog();
+            return true;
+        }*/
+
+        // switch statement, tjekker hvilket ikon fra actionbaren, der er klikket på
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                return true; //return true, means we have handled the event
+            case R.id.action_settings:
+                return true;
+            // hvis man klikker på X ikonet i actionbaren, så køres metoden, der før blev kørt ved tryk
+            // på "Clear" knappen
+            case R.id.item_clear:
+                showDialog();
+                return true;
+            case R.id.item_user_settings:
+                //Start our settingsactivity and listen to result - i.e.
+                //when it is finished.
+                Intent intent = new Intent(this,UserSettingsActivity.class);
+                startActivityForResult(intent,1);
+                //notice the 1 here - this is the code we then listen for in the
+                //onActivityResult
+                return true;
+            // som default skal den bare gøre det normale
+            default:
+                return super.onOptionsItemSelected(item);
         }
 
-        return super.onOptionsItemSelected(item);
+        //return false; //we did not handle the event
+
+        //return super.onOptionsItemSelected(item);
     }
 
     // denne metode bliver kaldt, før activity bliver destroyed
@@ -300,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
     }
 
 
-
+    // Denne metode køres, hvis brugeren trykker på X ikonet i actionbaren
     public void showDialog() {
         // viser Dialog
 
@@ -314,9 +396,9 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
         @Override
         protected void negativeClick() {
-            //Here we override the method and can now do something
+            // Denne metode køres, hvis brugeren trykker "No" til dialogen
             Toast toast = Toast.makeText(context,
-                    "negative button clicked", Toast.LENGTH_SHORT);
+                    "You chose not to clear", Toast.LENGTH_SHORT);
             toast.show();
         }
     }

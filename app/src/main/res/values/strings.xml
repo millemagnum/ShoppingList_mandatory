@@ -9,6 +9,7 @@
     <string name="areYouSure">Are you sure you want to clear all?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="enterName">Enter name</string>
 
     <string-array name="spinner_array">
         <item>1</item>
