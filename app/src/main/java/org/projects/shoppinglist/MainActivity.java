@@ -4,9 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,9 +22,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.firebase.ui.database.FirebaseListAdapter;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.crash.FirebaseCrash;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
 public class MainActivity extends AppCompatActivity implements MyDialogFragment.OnPositiveListener {
 
@@ -30,6 +40,15 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
     ArrayAdapter<Product> adapter;
     ListView listView;
     ArrayList<Product> bag = new ArrayList<Product>();
+
+    FirebaseListAdapter<Product> fbadapter;
+
+    public FirebaseListAdapter getMyFBAdapter() { return fbadapter; }
+
+    // metode for at få specifikt produkt
+    public Product getItem(int index) {
+        return (Product) getMyFBAdapter().getItem(index);
+    }
 
     public ArrayAdapter getMyAdapter()
     {
@@ -41,14 +60,30 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
     static Context context;
     int spinnerPosition = 0;
 
-    // til snackbar
+    // til snackbar - bruges til at holde styr på de sidst slettede produkter
     Product lastDeletedProduct;
     int lastDeletedPosition;
+    String lastDeletedKey;
 
+
+    // database reference
+    private DatabaseReference firebase;
+
+    // firebase remote config
+    private FirebaseRemoteConfig myFirebaseRemoteConfig;
+
+    // bruges til at gemme en kopi af tidligere produkter - som evt. slettes og vil trækkes tilbage
     public void saveCopy()
     {
+        // det sidste slettede produkts position
         lastDeletedPosition = listView.getCheckedItemPosition();
-        lastDeletedProduct = bag.get(lastDeletedPosition);
+
+        // det sidst slettede produkt
+        lastDeletedProduct = getItem(lastDeletedPosition); // var bag.get
+
+        // får fat i adapteren for firebase, finder referencen dertil for den sidste slettede position og får fat i key'en
+        // denne key holder styr på hvor produktet var før, da den fungerer som en slags time-stamp
+        lastDeletedKey = getMyFBAdapter().getRef(lastDeletedPosition).getKey();
     }
 
     @Override
@@ -61,12 +96,19 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                         "You have cleared the list", Toast.LENGTH_LONG);
                 toastClear.show();
 
+                // TODO - skal slettes senere
                 // clear listen af varer
-                bag.clear();
+                //bag.clear();
+
+                // sletter alt fra databasen - ville ikke virke med .child("items"), så derfor blev det på denne måde
+                // wiper firebase databasen, kan man sige
+                firebase.setValue(null);
 
                 // skal huske at have denne her, så ændringen vises for brugeren
-                getMyAdapter().notifyDataSetChanged();
+                //getMyAdapter().notifyDataSetChanged();
+                getMyFBAdapter().notifyDataSetChanged();
     }
+
 
 
     @Override
@@ -80,6 +122,71 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         showUsersName();
         showUserStatus();
 
+        // firebase reference - får fat i items
+        firebase = FirebaseDatabase.getInstance().getReference().child("items");
+
+        // subklassse af FirebaseListAdapter - af typen Product
+        fbadapter = new FirebaseListAdapter<Product>(this, Product.class, android.R.layout.simple_list_item_checked, firebase)
+        {
+            // overrider populateView metoden fra FirebaseListAdapter klassen
+            // metoden kaldes for hvert produkt, der findes i databasen
+            // passer Product og et view
+            @Override
+            protected void populateView (View view, Product product,int i){
+                TextView textView = (TextView) view.findViewById(android.R.id.text1); //standard android id.
+                textView.setText(product.toString());
+            }
+        };
+
+        //getting our listiew - you can check the ID in the xml to see that it
+        //is indeed specified as "list"
+        listView = (ListView) findViewById(R.id.list);
+
+        //setting the adapter on the listview
+        listView.setAdapter(fbadapter);
+
+        // Get Remote Config instance.
+        myFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
+
+        // får fat i app-name som default - for at kunne bruge det til at ændre det i Firebase console
+        Map<String,Object> defaults = new HashMap<>();
+        defaults.put("app_name", getResources().getString(R.string.app_name));
+        myFirebaseRemoteConfig.setDefaults(defaults);
+
+        // sætter firebase remote config indstillinger
+        FirebaseRemoteConfigSettings configSettings =
+                new FirebaseRemoteConfigSettings.Builder()
+                        // sættes til true, da den ellers er meget langsom?
+                        .setDeveloperModeEnabled(true)  //set to false when releasing
+                        .build();
+
+        myFirebaseRemoteConfig.setConfigSettings(configSettings);
+
+        // sættes til et milisekund, så det sker hurtigst muligt
+        Task<Void> myTask = myFirebaseRemoteConfig.fetch(1);
+
+        // listener på den task, der gør det muligt at bruge de config ændringer, der kan være opstået efter de er loadet
+        myTask.addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful())
+                {
+                    myFirebaseRemoteConfig.activateFetched();
+                    String name = myFirebaseRemoteConfig.getString("app_name");
+                    getSupportActionBar().setTitle(name);
+
+                    FirebaseCrash.log("app name from server:"+name);
+                    FirebaseCrash.report(new Exception("Logging"));
+                } else
+                    Log.d("ERROR","Task not succesfull + "+task.getException());
+            }
+        });
+
+
+
+
+
+        // TODO - slettes senere, da jeg ikke ville have spinner alligevel
 //        getActionBar().setHomeButtonEnabled(true); // så man kan klikke på app'ens navn/home
 
         //The spinner is defined in our xml file
@@ -104,6 +211,8 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
+        // TODO - slettes senere
         // opretter en adapter til spinneren
         /*
         ArrayAdapter<CharSequence> adapterSpinner = ArrayAdapter.createFromResource(
@@ -112,22 +221,22 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         spinner.setAdapter(adapterSpinner);
         */
 
-        //getting our listiew - you can check the ID in the xml to see that it
-        //is indeed specified as "list"
-        listView = (ListView) findViewById(R.id.list);
+
         //here we create a new adapter linking the bag and the
         //listview
-        adapter =  new ArrayAdapter<Product>(this,
-                android.R.layout.simple_list_item_checked,bag );
+       // adapter =  new ArrayAdapter<Product>(this,
+                //android.R.layout.simple_list_item_checked,bag );
 
         //setting the adapter on the listview
-        listView.setAdapter(adapter);
+        //listView.setAdapter(adapter);
         //here we set the choice mode - meaning in this case we can
         //only select one item at a time.
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
         // gemmer det tjekkede item - måske ikke alligevel
         //listView.getCheckedItemPosition();
+
+
 
 
 
@@ -147,6 +256,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
                 int quantityAmount = Integer.parseInt(editText1.getText().toString());
 
+
                 // har værdien fra spinneren
                 //String spinnerText = spinner1.getSelectedItem().toString();
 
@@ -165,12 +275,25 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                    // Integer.parseInt(spinnerAmount) = quantityAmount;
                 } */
 
-
+                // TODO - tror ikke jeg bruger det her mere?
                 // tilføjer quantityAmount og productName til listen
                 bag.add(new Product(productName, quantityAmount));
+
+
+                // tilføjer et produkt til listen
+                Product product = new Product(productName, quantityAmount);
+
+                // tilføjer produktet til firebase databasen
+                firebase.push().setValue(product);
+
+
                 //The next line is needed in order to say to the ListView
                 //that the data has changed - we have added stuff now!
-                getMyAdapter().notifyDataSetChanged();
+               // getMyAdapter().notifyDataSetChanged();
+                getMyFBAdapter().notifyDataSetChanged();
+
+                FirebaseCrash.report(new Exception("Non-fatal error"));
+                FirebaseCrash.log("Product added");
             }
         });
 
@@ -184,10 +307,16 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                 saveCopy();
 
                 // sletter den valgte vare
-                bag.remove(lastDeletedPosition);
+                //bag.remove(lastDeletedPosition);
+
+                // får fat i det specifikke produkt og sletter det fra databasen
+                int index = listView.getCheckedItemPosition();
+                getMyFBAdapter().getRef(index).setValue(null);
 
                 // viser ændringen for brugeren
-                getMyAdapter().notifyDataSetChanged();
+                getMyFBAdapter().notifyDataSetChanged();
+
+                // TODO - skal få den til at virke, så den ikke crasher når man trykker UNDO
 
                 // laver snackbar så hvis brugeren kommer til at slette noget og fortryder
                 // så har brugeren mulighed for at undo
@@ -198,8 +327,18 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
                             @Override
                             public void onClick(View view) {
-                                bag.add(lastDeletedPosition,lastDeletedProduct);
-                                getMyAdapter().notifyDataSetChanged();
+
+                                // TODO - skal slettes senere
+                                //getItem(index); //index
+                                //bag.add(lastDeletedPosition,lastDeletedProduct);
+                                //getMyAdapter().notifyDataSetChanged();
+                                //firebase.push().setValue(lastDeletedProduct);
+
+                                // får fat i child item fra databasen (som er et produkt) og her findes den sidst slettede key
+                                // denne key holder styr på hvor produktet var før, da den fungerer som en slags time-stamp
+                                // sætter value til at være det sidst slettede produkt - da det der den vi gerne vil have ind igen ved UNDO
+                                firebase.child(lastDeletedKey).setValue(lastDeletedProduct);
+                                getMyFBAdapter().notifyDataSetChanged();
                                 Snackbar snackbar = Snackbar.make(parent, "Product restored!", Snackbar.LENGTH_SHORT);
                                 snackbar.show();
                             }
@@ -214,7 +353,10 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                 textView.setTextColor(Color.WHITE);
 
                 snackbar.show();
-                getMyAdapter().notifyDataSetChanged();
+                getMyFBAdapter().notifyDataSetChanged();
+
+                // TODO - skal slettes senere!
+                //getMyAdapter().notifyDataSetChanged();
 
 
                 // sætter den tjekkede vare/værdi i en int
@@ -242,6 +384,8 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
             }
         });*/
+
+
 
        // Spinner spinner1 = (Spinner) findViewById(R.id.spinner);
         //final String spinnerAmount = (String) spinner1.getSelectedItem();
@@ -405,6 +549,8 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
             toast.show();
         }
     }
+
+
 
 
 }
