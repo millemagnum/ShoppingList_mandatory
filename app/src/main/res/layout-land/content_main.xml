@@ -15,8 +15,7 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="org.projects.shoppinglist.MainActivity"
     tools:showIn="@layout/activity_main">
-    <!-- har focusable og focusableInTouchMode, så den ikke har fokus på EditText
-     feltet men derimod på layoutet -->
+    <!-- har focusable og focusableInTouchMode, så den ikke har fokus på EditText feltet men derimod på layoutet -->
 
     <TextView
         android:layout_width="wrap_content"
@@ -70,16 +69,15 @@
             android:inputType="number" />
 
         <!-- har valgt at have knappen her, så den vises ved siden af det andet -->
-        <Button
-            android:id="@+id/addButton"
-            android:text="Add"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+        <!--<Button-->
+            <!--android:id="@+id/addButton"-->
+            <!--android:text="Add"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"/>-->
 
     </LinearLayout>
 
-    <!-- For hver gang man gerne vil have elementer ved siden af
-     hinanden på samme linje, så skal man lave en ny LinearLayout
+    <!-- For hver gang man gerne vil have elementer ved siden af hinanden på samme linje, så skal man lave en ny LinearLayout
      til de pågældende elementer, som de skal være i sammen -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -87,13 +85,27 @@
         android:orientation="horizontal"
         android:weightSum="100">
 
+
+        <!-- har valgt at placere Add knappen her, da det blev tomt med kun Delete knappen for sig selv - clear knappen er jo flyttet -->
+        <Button
+            android:id="@+id/addButton"
+            android:text="Add to list"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="50"
+            android:backgroundTint="@color/primaryButtonBackColor"
+            android:textColor="@color/primaryButtonTextColor"/>
+
         <Button
             android:id="@+id/deleteButton"
             android:text="Delete"
             android:layout_weight="50"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/signOutButtonBackColor"
+            android:textColor="@color/primaryButtonTextColor"/>
 
+        <!-- clear knappen er flyttet til actionbaren! -->
        <!-- <Button
             android:id="@+id/clearButton"
             android:text="Clear"

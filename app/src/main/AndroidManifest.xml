@@ -26,6 +26,11 @@
         <activity android:name=".UserSettingsActivity"
             android:label="UserSettings">
         </activity>
+        <!-- Gør Android opmærksom på min tredje Activity -->
+        <activity android:name=".EmailPasswordActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
         <!-- Android services for Messaging og ID -->
         <service android:name=".MyFirebaseMessagingService">
             <intent-filter>

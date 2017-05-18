@@ -68,11 +68,13 @@
             android:inputType="number"/>
 
         <!-- For at knappen bliver vist der ved siden af tekstfelterne, skal den være her -->
-        <Button
-            android:id="@+id/addButton"
-            android:text="Add"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+        <!--<Button-->
+            <!--android:id="@+id/addButton"-->
+            <!--android:text="Add"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:backgroundTint="@color/primaryButtonBackColor"-->
+            <!--android:textColor="@color/primaryButtonTextColor"/>-->
 
     </LinearLayout>
 
@@ -85,13 +87,26 @@
         android:orientation="horizontal"
         android:weightSum="100">
 
+    <!-- har valgt at placere Add knappen her, da det blev tomt med kun Delete knappen for sig selv - clear knappen er jo flyttet -->
+    <Button
+        android:id="@+id/addButton"
+        android:text="Add to list"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="50"
+        android:backgroundTint="@color/primaryButtonBackColor"
+        android:textColor="@color/primaryButtonTextColor"/>
+
     <Button
         android:id="@+id/deleteButton"
         android:text="Delete"
         android:layout_weight="50"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/signOutButtonBackColor"
+        android:textColor="@color/primaryButtonTextColor" />
 
+    <!-- clear knappen er flyttet til actionbaren! -->
     <!--<Button
         android:id="@+id/clearButton"
         android:text="Clear"

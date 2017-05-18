@@ -10,6 +10,11 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="enterName">Enter name</string>
+    <string name="shareTo">Share your shoppinglist via...</string>
+
+    <!-- for EmailPasswordActivity -->
+    <string name="signed_out">Signed Out</string>
+    <string name="auth_failed">Authentication failed</string>
 
     <string-array name="spinner_array">
         <item>1</item>

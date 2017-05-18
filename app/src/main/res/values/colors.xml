@@ -4,4 +4,10 @@
     <color name="colorPrimaryDark">#560192</color> <!-- 303F9F -->
     <color name="colorAccent">#40adff</color> <!-- FF4081 -->
     <color name="colorText">#000000</color>
+    <color name="signInButtonTextColor">#ffffff</color>
+    <color name="signInButtonBackColor">#17b240</color>
+    <color name="signOutButtonTextColor">#ffffff</color>
+    <color name="signOutButtonBackColor">#d60202</color>
+    <color name="primaryButtonBackColor">#8858ad</color>
+    <color name="primaryButtonTextColor">#ffffff</color>
 </resources>
