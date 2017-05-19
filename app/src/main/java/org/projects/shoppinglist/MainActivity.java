@@ -307,7 +307,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
                 // viser ændringen for brugeren
                 getMyFBAdapter().notifyDataSetChanged();
-                
+
                 // laver snackbar så hvis brugeren kommer til at slette noget og fortryder
                 // så har brugeren mulighed for at undo
                 final View parent = listView;
