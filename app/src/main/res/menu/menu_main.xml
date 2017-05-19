@@ -11,18 +11,19 @@
         android:title="Clear"/>
 
     <item
-        android:id="@+id/item_user_settings"
-        android:icon="@android:drawable/ic_menu_preferences"
-        app:showAsAction="never"
-        android:orderInCategory="2"
-        android:title="User settings"/>
-
-    <item
         android:id="@+id/item_login_settings"
         android:icon="@android:drawable/ic_menu_preferences"
         app:showAsAction="never"
-        android:orderInCategory="3"
+        android:orderInCategory="2"
         android:title="Login"/>
+
+    <item
+        android:id="@+id/item_user_settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        app:showAsAction="never"
+        android:orderInCategory="3"
+        android:title="User settings"/>
+
 
     <item
         android:id="@+id/item_share_list"
@@ -31,9 +32,9 @@
         android:orderInCategory="4"
         android:title="Share list"/>
 
-    <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never"/>
+    <!--<item-->
+        <!--android:id="@+id/action_settings"-->
+        <!--android:orderInCategory="100"-->
+        <!--android:title="@string/action_settings"-->
+        <!--app:showAsAction="never"/>-->
 </menu>

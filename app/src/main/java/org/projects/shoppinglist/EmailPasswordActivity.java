@@ -279,13 +279,15 @@ public class EmailPasswordActivity extends BaseActivity implements View.OnClickL
 
             // brugeren er ikke logget ind/logget ud, så derfor ændres teksten - inputfelterne + knapper bliver igen synlige
 
-            mTitleTextView.setText("You are not logged in - please login");
+            mTitleTextView.setText("You are not logged in - please login below");
             mStatusTextView.setText(R.string.signed_out);
             mDetailTextView.setText(null);
 
             findViewById(R.id.emailPasswordButtons).setVisibility(View.VISIBLE);
             findViewById(R.id.EmailPasswordFields).setVisibility(View.VISIBLE);
             findViewById(R.id.emailSigninButton).setVisibility(View.VISIBLE);
+            findViewById(R.id.verifyEmailButton).setVisibility(View.GONE);
+            findViewById(R.id.signOutButton).setVisibility(View.GONE);
         }
     } // updateUI slutter
 

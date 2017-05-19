@@ -13,7 +13,7 @@
     <string name="shareTo">Share your shoppinglist via...</string>
 
     <!-- for EmailPasswordActivity -->
-    <string name="signed_out">Signed Out</string>
+    <string name="signed_out">Signed out</string>
     <string name="auth_failed">Authentication failed</string>
 
     <string-array name="spinner_array">

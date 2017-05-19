@@ -40,10 +40,10 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 public class MainActivity extends AppCompatActivity implements MyDialogFragment.OnPositiveListener {
 
 
-    ArrayAdapter<Product> adapter;
     ListView listView;
     ArrayList<Product> bag = new ArrayList<Product>();
 
+    // laver Firebase Liste Adapter - før brugte vi en almindelig arrayAdapter, men nu da databasen er koblet på, bruges Firebases adapter
     FirebaseListAdapter<Product> fbadapter;
 
     public FirebaseListAdapter getMyFBAdapter() { return fbadapter; }
@@ -53,15 +53,9 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         return (Product) getMyFBAdapter().getItem(index);
     }
 
-    public ArrayAdapter getMyAdapter()
-    {
-        return adapter;
-    }
-
     // bruges til dialog fragment
     static MyDialogFragment dialog;
     static Context context;
-    int spinnerPosition = 0;
 
     // til snackbar - bruges til at holde styr på de sidst slettede produkter
     Product lastDeletedProduct;
@@ -75,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
     // firebase remote config
     private FirebaseRemoteConfig myFirebaseRemoteConfig;
 
+    // Firebase authentication og user
     private FirebaseAuth mAuth;
     FirebaseUser user;
 
@@ -96,33 +91,26 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
     @Override
     public void onPositiveClicked() {
-        // Her kommer al funktionaliteten fra Clear knappen, da det kun skal
-        // udføres, når man klikker "Ja" ved Dialog
+        // Her kommer al funktionaliteten fra Clear knappen, da det kun skal udføres, når man klikker "Ja" ved Dialog
 
                 // viser toast om at man har cleared listen for at informere brugeren
                 Toast toastClear = Toast.makeText(context,
                         "You have cleared the list", Toast.LENGTH_LONG);
                 toastClear.show();
 
-                // TODO - skal slettes senere
-                // clear listen af varer
-                //bag.clear();
-
                 // sletter alt fra databasen - ville ikke virke med .child("items"), så derfor blev det på denne måde
                 // wiper firebase databasen, kan man sige
                 firebase.setValue(null);
 
                 // skal huske at have denne her, så ændringen vises for brugeren
-                //getMyAdapter().notifyDataSetChanged();
                 getMyFBAdapter().notifyDataSetChanged();
     }
 
 
-
+    // denne metode køres i onCreate og i onActivityResult (for at app'en ikke crasher, når man er logget ind og går tilbage til shoppinglisten)
+    // ved at denne køres igen nede i onActivityResult, ved den hvem brugeren er
     public void setup()
     {
-
-
         // Login - authentication og user
         this.mAuth = FirebaseAuth.getInstance();
         // får fat i den nuværende bruger via authentication
@@ -152,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
             }
         };
 
+        // får fat i listview via det id det fik i xml filen
         listView = (ListView) findViewById(R.id.list);
 
         // sætter adapteren til listview'et
@@ -172,9 +161,8 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         showUsersName();
         showUserStatus();
 
+        // kører setup metoden, hvor user bl.a. findes og listen fetches fra databasen
         setup();
-        // får fat i listview via det id det fik i xml filen
-
 
         // Får fat i Remote Config instance
         myFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
@@ -214,17 +202,6 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
             }
         });
 
-
-
-
-
-        // TODO - slettes senere, da jeg ikke ville have spinner alligevel
-//        getActionBar().setHomeButtonEnabled(true); // så man kan klikke på app'ens navn/home
-
-        //The spinner is defined in our xml file
-        //Spinner spinner = (Spinner) findViewById(R.id.spinner);
-
-
         // får adgang til vores gemte data, bruger ArrayList, som er det bag er
         // tjekker om der er gemt noget
         if (savedInstanceState != null) {
@@ -234,24 +211,10 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
             if (saved != null) {
                 bag = saved;
             }
-        } //else {
-            // hvis ikke der er gemt noget, viser den bare default
-           // bag.add("2 Bananas");
-           // bag.add("4 Apples");
-        //}
+        }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-
-        // TODO - slettes senere
-        // opretter en adapter til spinneren
-        /*
-        ArrayAdapter<CharSequence> adapterSpinner = ArrayAdapter.createFromResource(
-                this, R.array.spinner_array, android.R.layout.simple_spinner_item);
-        adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapterSpinner);
-        */
 
 
         //here we create a new adapter linking the bag and the
@@ -275,27 +238,11 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
             @Override
             public void onClick(View v) {
 
-                // får fat i edittext feltet
+                // får fat i edittext felterne
                 EditText editText = (EditText) findViewById(R.id.textfield);
                 EditText editText1 = (EditText) findViewById(R.id.quantityfield);
-                //Spinner spinner1 = (Spinner) findViewById(R.id.spinner); - valgte ikke at have spinner
 
-                // laver en string, som får fat i edit text og konverterer det til en string
-               // String productName = editText.getText().toString();
-
-                //String productName = "";
                 int quantityAmount = 0;
-
-                // TODO - udkommenterer alt det kode jeg ikke bruger
-
-                // da dette er blevet til en int, bruges Integer.parseInt for at konvertere den til en string
-                //int quantityAmount = Integer.parseInt(editText1.getText().toString());
-
-//                String productNameString = "";
-//                String quantityAmountString = editText1.getText().toString();
-                //quantityAmountString = "";
-
-                //String productName = "";
 
                 // får ikke app'en til at crashe, når man ikke har indtastet et tal i Quantity edittext feltet
                 // den prøver at få quantity amout til at blive til en string og opsnappe det indtastede
@@ -313,6 +260,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                     return;
                 }
 
+                // laver en string, som får fat i edit text og konverterer det til en string
                 String productName = editText.getText().toString();
 
 
@@ -321,10 +269,10 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                 // fandt hjælp her (til fremtidig reference) - http://stackoverflow.com/questions/10782042/android-program-crashing-when-edittext-has-nothing-in-it
                 if (productName.equals(null) || productName.equals("") || productName.length() == 0) {
                     Toast.makeText(MainActivity.this, "Please enter a product", Toast.LENGTH_SHORT).show();
-                } else {
+                } else { // hvis produkt-feltet IKKE er tomt, så gemmes det i databasen og tilføjes til listen
+
                     // tilføjer quantityAmount og productName til listen
                     bag.add(new Product(productName, quantityAmount));
-
 
                     // tilføjer et produkt til listen
                     Product product = new Product(productName, quantityAmount);
@@ -332,92 +280,15 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                     // tilføjer produktet til firebase databasen
                     firebase.push().setValue(product);
 
-
-                    // getMyAdapter().notifyDataSetChanged();
                     // siger til Listview at data er ændret - at jeg altså har tilføjet ting
                     getMyFBAdapter().notifyDataSetChanged();
 
                     // reference til Firebase crash reporting - rapporterer en "non-fatal" fejl, der skriver "Product added" i loggen
+                    // for at få afprøvet det
                     FirebaseCrash.report(new Exception("Non-fatal error"));
                     FirebaseCrash.log("Product added");
                 }
-//                } else {
-//                    // laver en string, som får fat i edit text og konverterer det til en string
-//                    productName = editText.getText().toString();
-//                }
 
-
-
-                // productName.equals("")
-                // hvis det er en if og else, så kommer den aldrig ned i else fordi productName er tom
-//                if(productName.isEmpty()) {
-//                    Toast.makeText(MainActivity.this, "Please enter a product", Toast.LENGTH_SHORT).show();
-//
-//                }
-//
-//                    productName = editText.getText().toString();
-
-//                try {
-//                    productName = editText.getText().toString();
-//                }
-//                catch(NumberFormatException ex) {
-//                    //They didn't enter a number.  Pop up a toast or warn them in some other way
-//                    Toast.makeText(MainActivity.this, "Please enter a product", Toast.LENGTH_SHORT).show();
-//                    return;
-//                }
-
-
-
-//                if(editText != null) {
-//                    productName = editText.getText().toString();
-//                } else {
-//                    Toast.makeText(MainActivity.this, "Please enter a product", Toast.LENGTH_SHORT).show();
-//                }
-
-
-//                if(quantityAmountString.length() == 0 || quantityAmountString.isEmpty()) {
-
-//                if(quantityAmountString == "") {
-//                    Toast.makeText(MainActivity.this, "Please enter quantity", Toast.LENGTH_SHORT).show();
-//                } else {
-//                    quantityAmount = Integer.parseInt(quantityAmountString);
-//                }
-
-//                if(editText1 != null) {
-//                    quantityAmount = Integer.parseInt(quantityAmountString);
-//
-//                } else {
-//                    Toast.makeText(MainActivity.this, "Please enter quantity", Toast.LENGTH_SHORT).show();
-//                }
-
-
-
-
-
-
-
-                // har værdien fra spinneren - valgte ikke at have spinner
-                //String spinnerText = spinner1.getSelectedItem().toString();
-
-                // Google - edittext equal spinner value - valgte ikke at have spinner
-                /*if (editText1 == null) {
-                    // hvis quantityAmount er tom, så skal den tage værdien fra spinneren
-
-                    // har værdien fra spinneren
-                    String spinnerText = spinner1.getSelectedItem().toString();
-
-                    quantityAmount = Integer.parseInt(spinnerText);
-
-
-
-                    // String spinnerAmount = (String) spinner1.getSelectedItem();
-                   // Integer.parseInt(spinnerAmount) = quantityAmount;
-                } */
-
-               // if (!productName.isEmpty()) {
-
-
-               // }
             }
         });
 
@@ -430,19 +301,13 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                 // gemmer en kopi af den slettede vare
                 saveCopy();
 
-                // sletter den valgte vare
-                //bag.remove(lastDeletedPosition);
-
                 // får fat i det specifikke produkt og sletter det fra databasen - sletter ved at sætte value til null
                 int index = listView.getCheckedItemPosition();
-
                 getMyFBAdapter().getRef(index).setValue(null);
-
-
 
                 // viser ændringen for brugeren
                 getMyFBAdapter().notifyDataSetChanged();
-
+                
                 // laver snackbar så hvis brugeren kommer til at slette noget og fortryder
                 // så har brugeren mulighed for at undo
                 final View parent = listView;
@@ -452,12 +317,6 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
                             @Override
                             public void onClick(View view) {
-
-                                // TODO - skal slettes senere
-                                //getItem(index); //index
-                                //bag.add(lastDeletedPosition,lastDeletedProduct);
-                                //getMyAdapter().notifyDataSetChanged();
-                                //firebase.push().setValue(lastDeletedProduct);
 
                                 // får fat i child item fra databasen (som er et produkt) og her findes den sidst slettede key
                                 // denne key holder styr på hvor produktet var før, da den fungerer som en slags time-stamp
@@ -488,111 +347,48 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                 snackbar.show();
                 getMyFBAdapter().notifyDataSetChanged();
 
-                // TODO - skal slettes senere!
-                //getMyAdapter().notifyDataSetChanged();
-
-
-                // sætter den tjekkede vare/værdi i en int
-               // int checked = listView.getCheckedItemPosition();
-
-
-                // sletter den valgte vare
-                //bag.remove(checked);
-
-                // skal huske at have denne her, så ændringen vises for brugeren
-                //getMyAdapter().notifyDataSetChanged();
             }
         }); // click listener for delete knap slutter
 
-        // finder clear knappen
+    } // onCreate slutter
 
-        // TODO - skal slettes, bruges ikke mere
-        /*Button clearButton = (Button) findViewById(R.id.clearButton);
-        clearButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                // funktionaliteten køres fra onPositiveClickListener
-                showDialog();
-
-            }
-        });*/
-
-
-
-       // Spinner spinner1 = (Spinner) findViewById(R.id.spinner);
-        //final String spinnerAmount = (String) spinner1.getSelectedItem();
-
-        // listener på spinner
-        /*
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-
-            //The AdapterView<?> type means that this can be any type,
-            //so we can use both AdapterView<String> or any other
-
-
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view,
-                                       int position, long id) {
-                //So this code is called when ever the spinner is clicked
-                spinnerPosition = position;
-                Toast.makeText(MainActivity.this,
-                        "Item selected: " + spinnerPosition, Toast.LENGTH_SHORT)
-                        .show();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0) {
-                // TODO you would normally do something here
-                // for instace setting the selected item to "null"
-                // or something.
-            }
-        });
-        */
-
-        //add some stuff to the list so we have something
-        // to show on app startup
-        // udkommenteret, ellers kommer der nye frem efter hver drejning af mobilen
-        //bag.add("2 Bananas");
-        //bag.add("4 Apples");
-
-    }
-
-    // bruger denne metode til at vise navnet på brugeren fra mit Preference fragment
+    // bruger denne metode til at vise navnet på brugeren fra MyPreferenceFragment
     private void showUsersName() {
 
-        // navnet sættes til at være det brugeren har indtastet via User setting
+        // navnet sættes til at være det brugeren har indtastet via User Settings
         String name = MyPreferenceFragment.getName(this);
 
         // toasten der skal udskrives - som er en velkomst besked til brugeren
         String message = "Welcome back "+name+"";
         Toast toast = Toast.makeText(this, message, Toast.LENGTH_SHORT);
         toast.show();
-    }
+    } //showUserName slutter
 
     // bruges til at vise brugerens status - om brugeren har tid til at handle ind eller ej
     private void showUserStatus() {
 
+        // busy sættes til at være det brugeren har valgt i User Settings
         boolean isBusy = MyPreferenceFragment.isBusy(this);
 
+        // hvis brugeren har vinget "busy" af i User Settings, skrives en toast om at brugeren ikke har tid til at handle ind på dagen
         if (isBusy) {
             String message = "You don't have time to shop today";
-            Toast toast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+            Toast toast = Toast.makeText(this, message, Toast.LENGTH_SHORT);
             toast.show();
-        } else {
+        } else { // hvis brugeren ikke har vinget busy af, kommer toast om at brugeren har tid til at handle ind på dagen
             String message = "You have time to shop today";
-            Toast toast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+            Toast toast = Toast.makeText(this, message, Toast.LENGTH_SHORT);
             toast.show();
         }
 
-    }
+    } // showUserStatus slutter
 
 
     // denne metode får fat i resultater via intents, hvor bl.a. UserSetting Activity bliver startet med startActiviryForResult og det samme
     // gælder for EmailPasswordActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 1) // betyder vi er kommet tilbage fra User settings
+        if (requestCode == 1) // betyder vi er kommet tilbage fra UserSettingsActivity
         {
             // Kalder metoden, der udskriver det indtastede navn i en toast
             showUsersName();
@@ -605,16 +401,16 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
             // laver her en toast for at vise brugeren at han/hun er logget ind og viser brugerens mail via user fra authentication
             // kører setup metoden for at få opdateret brugeren
             setup();
+
+            // hvis brugeren ikke er null, skrives en toast, hvor brugeren bliver gjort opmærksom på at han/hun er logget ind som xx email
            if (user != null) {
                Toast toast = Toast.makeText(context, "Logged in as " + user.getEmail(), Toast.LENGTH_SHORT);
                toast.show();
            }
 
-            // evt. ændre brugeren i userSettings, but how? - TODO
-
         }
         super.onActivityResult(requestCode, resultCode, data);
-    }
+    } // onActivityResult slutter
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -622,49 +418,36 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         //return true;
         return super.onCreateOptionsMenu(menu);
-    }
+    } // onCreateOptionsMenu slutter
 
+    // her er metoden, hvor jeg håndterer actionbar/overflow clicks
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        //int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        /*if (id == R.id.action_settings) {
-            return true;
-        } else if (id == R.id.item_clear) {
-            //showDialog();
-            return true;
-        }*/
 
         // switch statement, tjekker hvilket ikon fra actionbaren eller overflow, der er klikket på
         switch (item.getItemId()) {
             case android.R.id.home:
-                return true; //return true, means we have handled the event
-            case R.id.action_settings:
-                return true;
-            // hvis man klikker på X ikonet i actionbaren, så køres metoden, der før blev kørt ved tryk
-            // på "Clear" knappen
+                return true; // true betyder at eventet er håndteret
+            // hvis man klikker på X ikonet i actionbaren, så køres metoden, der før blev kørt ved tryk på "Clear" knappen
             case R.id.item_clear:
                 showDialog();
                 return true;
+            // user settings i overflow
             case R.id.item_user_settings:
-                //Start our settingsactivity and listen to result - i.e.
-                //when it is finished.
+                // starter UserSettingsActivity
                 Intent intent = new Intent(this,UserSettingsActivity.class);
-                startActivityForResult(intent,1);
-                //notice the 1 here - this is the code we then listen for in the
-                //onActivityResult
+                // koden 1 er den jeg lytter efter i onActivityResult, hvor jeg reagerer på hvad der skal gøres, når brugeren kommer tilbage fra
+                // UserSettingsActivity
+                startActivityForResult(intent, 1);
                 return true;
+            // login i overflow - dette er Authentication med Email og Password
             case R.id.item_login_settings:
-                // prøver at skifte til login acvitity
+                // starter EmailPasswordActivity
                 Intent loginIntent = new Intent(this, EmailPasswordActivity.class);
+                // koden 2 lytter jeg efter i onActivityResult
                 startActivityForResult(loginIntent, 2);
-                // var startActivity - TODO prøver at få fat i brugeren
-
                 return true;
+            // dele-funktionen for shoppinglisten som text - i overflow
             case R.id.item_share_list:
                 // laver en instans af Product
                 Product product;
@@ -679,15 +462,22 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                     }
                 }
 
-                // Laver et intent for at kunne dele shoppinglisten - som tekst
-                // https://developer.android.com/training/sharing/send.html
+                // Laver et intent for at kunne dele shoppinglisten - som tekst - https://developer.android.com/training/sharing/send.html
                 Intent shareListIntent = new Intent();
+
+                // indikerer at intent sender data fra en activity til en anden
                 shareListIntent.setAction(Intent.ACTION_SEND);
+
+                // dette tilføjer et "emne", som kan bruges, hvis man vil sende listen som en mail
                 shareListIntent.putExtra(Intent.EXTRA_SUBJECT, "ShoppingList");
+
+                // tilføjer tekst før selve listen og så med hvert produkt på en ny linje, så det ser overskueligt ud, der hvor man deler det
                 shareListIntent.putExtra(Intent.EXTRA_TEXT, "I need to buy: \n" + listItems);
+
+                // sættes til text type
                 shareListIntent.setType("text/plain");
-                //startActivity(shareListIntent);
-                // giver brugeren mulighed for at vælge imellem flere apps fremfor blot at tage "Meddelelser"
+
+                // giver brugeren mulighed for at vælge imellem flere apps fremfor blot at tage "Meddelelser"/SMS
                 startActivity(Intent.createChooser(shareListIntent, getResources().getText(R.string.shareTo)));
                 return true;
 
@@ -696,10 +486,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                 return super.onOptionsItemSelected(item);
         }
 
-        //return false; //we did not handle the event
-
-        //return super.onOptionsItemSelected(item);
-    }
+    } // onOptionsItemSelected
 
     // denne metode bliver kaldt, før activity bliver destroyed
     @Override
@@ -707,37 +494,32 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         // bør altid kalde super metoden
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList("bagSaved", bag); // i stedet for putStringArrayList
-    }
+    } // onSaveInstanceState
 
 
-    // Denne metode køres, hvis brugeren trykker på X ikonet i actionbaren
+    // Denne metode køres, hvis brugeren trykker på X ikonet i actionbaren - som clear listen
     public void showDialog() {
-        // viser Dialog
 
+        // laver en ny MyDialog
         dialog = new MyDialog();
-        //Here we show the dialog
-        //The tag "MyFragement" is not important for us.
+
+        // viser Dialog via Fragment Manager
         dialog.show(getFragmentManager(), "MyFragment");
-    }
+    } // showDialog slutter
 
     public static class MyDialog extends MyDialogFragment {
 
         @Override
         protected void negativeClick() {
-            // Denne metode køres, hvis brugeren trykker "No" til dialogen
+            // Denne metode køres, hvis brugeren trykker "No" til dialogen - altså vælger ikke at clear listen
             Toast toast = Toast.makeText(context,
                     "You chose not to clear", Toast.LENGTH_SHORT);
             toast.show();
         }
-    }
+    } // MyDialog slutter
 
 
-
-
-
-
-
-}
+} // MainActivity slutter
 
 
 
